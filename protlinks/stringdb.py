@@ -46,7 +46,7 @@ class StringDB:
 
 rhiz = StringDB(species="1500304")
 
-genes = ["JQKY01000021_gene2060", "Y01000003_gene347", "JQKY01000004_gene1432"]
+genes = ["JQKY01000021_gene2060", "JQKY01000003_gene347", "JQKY01000004_gene1432"]
 
 rhiz.get_neighbors(genes, min_score=800)
 
