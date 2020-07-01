@@ -1,5 +1,6 @@
 import pandas as pd
 from urllib.parse import urlencode
+import requests
 
 # WIP
 
@@ -8,8 +9,7 @@ class BioGrid:
     def __init__(self, access_key):
         self.key = access_key
         self.base_url = "https://webservice.thebiogrid.org/"
-        self.format = "json"
-        self.interactions = "interactions/"
+        self.interactions = "interactions/?"
         self.valid_keys = [
             "start",
             "max",
@@ -35,13 +35,20 @@ class BioGrid:
             "translate",
         ]
 
-    def make_url(self, **kwargs):
-        info = (("accessKey", self.key), ("format", self.format))
-        params = self.__valid_keywords(kwargs)
-        params = tuple({(k, v) for k, v in kwargs.items()})
+    def __make_url(self, params):
+        info = (("accessKey", self.key), ("format", "json"))
+        params = self.__valid_keywords(params)
+        params = tuple({(k, v) for k, v in params.items()})
         url = params + info
-        endpoint = urlencode(url)
-        print(params)
+        encoded = urlencode(url, safe="|")
+        endpoint = self.base_url + self.interactions + encoded
+        return endpoint
+
+    def get_interactions(self, **kwargs):
+        endpoint = self.__make_url(kwargs)
+        req = requests.get(endpoint).json()
+        inter_table = pd.DataFrame(req).T.reset_index(drop=True)
+        return inter_table
 
     def __valid_keywords(self, params):
 
@@ -56,24 +63,16 @@ class BioGrid:
                     params[param] = "|".join(params[param])
                 else:
                     raise ValueError(
-                        f"If you pass a gene list, you have to pass one of these three arguments {self.valid_keys[7:10]} as true"
+                        f"If you pass a gene list, you have to pass one of these three arguments {self.valid_keys[7:10]} as true, to indicate which ids you're using."
                     )
 
         return params
 
 
-BioGrid(access_key="#keyhere").make_url(searchNames=True, geneList=["bla", "ble"])
+import os
 
+test = BioGrid(access_key=os.environ.get("ACCESS_KEY")).get_interactions(
+    searchNames=True, geneList=["MAPK10", "BRCA1"]
+)
 
-# def teste_any(**kwargs):
-#     for param in kwargs.keys():
-#         if param == "geneList":
-#             if set(kwargs.keys()) & set(["searchIds", "searchNames", "searchSynonyms"]):
-#                 kwargs[param] = "|".join(kwargs[param])
-#                 print(kwargs[param])
-#             else:
-#                 print("False")
-
-
-# teste_any(searchNames=True, geneList=["bla", "ble"])
-
+print(test)
