@@ -1,5 +1,4 @@
 from protlinks.biogrid import BioGrid
-import pytest
 from pytest import raises
 import os
 
